@@ -7,6 +7,7 @@ resource "aws_docdb_cluster" "docdb" {
 # True only during lab, in prod , we will take a snapshot and that time value will be false
   skip_final_snapshot     = true
   db_subnet_group_name    = aws_docdb_subnet_group.docdb.name
+  vpc_security_group_ids  = [aws_security_group.allow_docdb.id]
 }
 
 
@@ -22,8 +23,44 @@ resource "aws_docdb_subnet_group" "docdb" {
 
 # Creats DocDB Cluster Instances and adds them to the cluster
 resource "aws_docdb_cluster_instance" "cluster_instances" {
-  count              = 1
+  count              = var.DOCDB_INSTANCE_COUNT
   identifier         = "roboshop-${var.ENV}"
   cluster_identifier = aws_docdb_cluster.docdb.id
-  instance_class     = "db.t3.medium"
+  instance_class     = var.DOCDB_INSTANCE_CLASS
+}
+
+
+# Creates Security Group for DocumentDB
+resource "aws_security_group" "allow_docdb" {
+  name        = "roboshop-docdb-${var.ENV}"
+  description = "roboshop-docdb-${var.ENV}"
+  vpc_id      = data.terraform_remote_state.vpc.outputs.VPC_ID
+
+  ingress {
+    description      = "Allow DocDB Connection From Default VPC"
+    from_port        = var.DOCDB_PORT
+    to_port          = var.DOCDB_PORT
+    protocol         = "tcp"
+    cidr_blocks      = [data.terraform_remote_state.vpc.outputs.DEFAULT_VPC_CIDR]
+  }
+
+  ingress {
+    description      = "Allow DocDB Connection From Private VPC"
+    from_port        = var.DOCDB_PORT
+    to_port          = var.DOCDB_PORT
+    protocol         = "tcp"
+    cidr_blocks      = [data.terraform_remote_state.vpc.outputs.VPC_CIDR]
+  }
+
+  egress {
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
+    cidr_blocks      = ["0.0.0.0/0"]
+    ipv6_cidr_blocks = ["::/0"]
+  }
+
+  tags = {
+    Name = "roboshop-docdb-sg-${var.ENV}"
+  }
 }
