@@ -1,13 +1,13 @@
 # Creates DocDB Cluster
-//resource "aws_docdb_cluster" "docdb" {
-  //cluster_identifier      = "roboshop-${var.ENV}"
-  //engine                  = "docdb"
-  //master_username         = "admin1"
-  //master_password         = "roboshop1"
+resource "aws_docdb_cluster" "docdb" {
+  cluster_identifier      = "roboshop-${var.ENV}"
+  engine                  = "docdb"
+  master_username         = "admin1"
+  master_password         = "roboshop1"
 # True only during lab, in prod , we will take a snapshot and that time value will be false
-  //skip_final_snapshot     = true
-  //db_subnet_group_name    = aws_docdb_subnet_group.docdb.name
-//}
+  skip_final_snapshot     = true
+  db_subnet_group_name    = aws_docdb_subnet_group.docdb.name
+}
 
 
 # Creates Subnet Group
@@ -21,9 +21,9 @@ resource "aws_docdb_subnet_group" "docdb" {
 }
 
 # Creats DocDB Cluster Instances and adds them to the cluster
-//resource "aws_docdb_cluster_instance" "cluster_instances" {
-  //count              = 1
-  //identifier         = "roboshop-${var.ENV}"
-  //cluster_identifier = aws_docdb_cluster.docdb.id
-  //instance_class     = "db.t3.medium"
-//}
+resource "aws_docdb_cluster_instance" "cluster_instances" {
+  count              = 1
+  identifier         = "roboshop-${var.ENV}"
+  cluster_identifier = aws_docdb_cluster.docdb.id
+  instance_class     = "db.t3.medium"
+}
